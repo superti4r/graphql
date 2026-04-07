@@ -1,6 +1,6 @@
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
-import { books, members } from "./_database.js";
+import { books, lendings, members } from "./_database.js";
 
 const typeDefs = `#graphql
   type Book {
@@ -10,6 +10,7 @@ const typeDefs = `#graphql
     published_at: String!
     category: String!
     total: Int!
+    lendings: [Lending!]!
   }
 
   type Member {
@@ -17,6 +18,15 @@ const typeDefs = `#graphql
     name: String!
     email: String!
     verified: Boolean!
+    lendings: [Lending!]
+  }
+
+  type Lending {
+    id: ID!
+    lent_at: String!
+    return_at: String!
+    book: Book!
+    member: Member!
   }
 
   type Query {
@@ -24,6 +34,8 @@ const typeDefs = `#graphql
     book(id: ID!): Book!
     members: [Member!]!
     member(id: ID!): Member!
+    lendings: [Lending!]!
+    lending(id: ID!): Lending!
   }
 `;
 
@@ -33,13 +45,23 @@ const resolvers = {
       return books;
     },
     book: (_, args) => {
-      return books.find((book) => (book.id) === args.id);
+      return books.find((book) => book.id === args.id);
     },
     members: () => {
       return members;
     },
     member: (_, args) => {
-      return members.find((member) => (member.id) === args.id);
+      return members.find((member) => member.id === args.id);
+    },
+    lendings: () => {
+      return lendings;
+    },
+    lending: (_, args) => {
+      return lendings.find((lending) => lending.id === args.id);
+    },
+
+    lendings(parent) {
+      return lendings.filter((lending) => lending.book_id === parent.id);
     },
   },
 };
